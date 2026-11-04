@@ -21,7 +21,7 @@ python -m bca run boredapeyachtclub
 
 **Data sources**
 - **OpenSea API v2:** collection info, stats, live listings and collection-wide bids → floor, best bid, spread, listed float, depth, and an **exit curve** (what selling 1/5/10/25/50/100 tokens into the bid book actually returns).
-- **Dune:** `nft.transfers` → current holders, concentration, contract-held share; `nft.trades` → all-venue sales, turnover, wash-trade flags (self-trades, reciprocal pairs, tokens traded 3+ times), clean comparable-sale percentiles.
+- **OpenSea sale events:** sales over the window → turnover, active days, wash-trade flags (self-trades, reciprocal pairs, tokens traded 3+ times), clean comparable-sale percentiles. Ownership uses OpenSea's owner-wallet count only; students research concentration manually.
 
 **What the scorecard does:** fills in the evidence and a data-confidence level for each dimension.
 **What it doesn't do:** the student enters the 0–5 scores (yellow cells), and the two qualitative
@@ -31,21 +31,13 @@ education tool rather than a signal service, in line with the MiCA boundary on p
 ## Setup (one time)
 
 1. Python 3.10+, then `pip install -e .`
-2. Get keys: OpenSea API key (docs.opensea.io), Dune API key (dune.com → Settings → API) and Anthropic API key (platform.claude.com) for the tutor.
+2. Get keys: OpenSea API key (docs.opensea.io) and Anthropic API key (platform.claude.com) for the tutor.
 3. `cp .env.example .env`, add your keys, then load them: `set -a; source .env; set +a`
-4. Create the two Dune queries in your Dune account:
-   ```
-   python -m bca dune-setup
-   ```
-   Paste the two printed `DUNE_QUERY_…` lines into `.env`. If your Dune plan doesn't allow
-   query creation through the API, create them by hand from `dune/holders.sql` and
-   `dune/trades.sql` (add text parameters `contract` and `days`), then copy the query IDs.
 
 ## Commands
 
 ```
 python -m bca run <slug> [--days 30]      # snapshot + workbook
-python -m bca run <slug> --no-dune        # OpenSea only (no ownership/trading tabs)
 python -m bca snapshot <slug>             # fetch only
 python -m bca workbook data/<slug>        # rebuild workbook from the latest snapshot
 python -m pytest -q                       # tests (synthetic inputs, no network)
@@ -96,9 +88,9 @@ The login form never reveals who is enrolled. The tutor needs a login and has a 
 
 ## Known limits (v0.1)
 
-- Only OpenSea order books. Blur and other venues' bids and listings aren't included yet; their **sales** are included via Dune.
+- OpenSea only: other marketplaces' listings, bids and sales aren't included.
+- Ownership concentration and contract-held share aren't automated (owner count only).
 - Bids may be unfunded. The exit curve assumes every bid is real.
-- Dune SQL is Ethereum ERC-721 only (BAYC, MAYC, BAKC). Other chains get OpenSea data only.
 - Rarity is ignored in comparable sales.
 - Tutor conversations are kept in server memory per student (they reset when the server restarts; the logs keep everything). The site runs as a single instance.
 - The OpenSea response parsing was written against the documented v2 shapes and tested with synthetic

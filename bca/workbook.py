@@ -91,9 +91,10 @@ def build_workbook(m: dict, path: str) -> str:
         ("Wash-trade flags", "Self-trades, reciprocal buyer/seller pairs, or tokens traded 3+ times in the window. "
                              "Flags are prompts to investigate, not proof."),
         ("Wallets ≠ people", "One person can control many wallets; contract holders (vaults, escrow, lending) hide real owners."),
-        ("Sources", "OpenSea API v2 (listings, offers, collection stats) and Dune (nft.transfers, nft.trades). "
+        ("Sources", "OpenSea API v2: collection info and stats, live listings, collection offers, sale events. "
                     "Every request is time-stamped on the Sources tab."),
-        ("Limitations", "Only OpenSea order books are captured; other venues' bids/listings are excluded. Bids may be unfunded. "
+        ("Limitations", "OpenSea only: other marketplaces' listings, bids and sales are excluded. Bids may be unfunded. "
+                        "Ownership concentration is not automated (owner count only). "
                         "Rarity is ignored in comparable sales. Data reflects the snapshot time only."),
         ("Permitted use", DISCLAIMER),
     ]
@@ -121,7 +122,7 @@ def build_workbook(m: dict, path: str) -> str:
         _kv("Bid book as % of headline cap", mk.get("bid_book_coverage_of_mcap_pct"), "0.00%", "How much of the headline could actually exit today"),
         _kv("Supply", mk.get("supply"), "#,##0", "Reported total supply"),
         _kv("OpenSea-reported floor", rep.get("reported_floor"), "0.000", "Cross-check against computed floor"),
-        _kv("OpenSea-reported owners", rep.get("reported_owners"), "#,##0", "Cross-check against Dune holder count"),
+        _kv("OpenSea-reported owners", rep.get("reported_owners"), "#,##0", "Wallets holding at least one token"),
     ]
     r = 5
     for label, v, fmt, d in kv:
@@ -143,9 +144,9 @@ def build_workbook(m: dict, path: str) -> str:
     r += 1
     _header(ws, r, ["Metric", "Value", "Definition"])
     trade_rows = [
-        ("Sales", tr.get("n_sales"), "#,##0", "All marketplaces (Dune nft.trades)"),
+        ("Sales", tr.get("n_sales"), "#,##0", "OpenSea sale events"),
         ("Volume (ETH-priced sales)", tr.get("volume_eth"), "#,##0.0", ""),
-        ("Volume (USD, all sales)", tr.get("volume_usd"), "$#,##0", ""),
+
         ("Turnover", tr.get("turnover_pct"), "0.0%", "Distinct tokens traded / supply"),
         ("Unique buyers", tr.get("unique_buyers"), "#,##0", ""),
         ("Unique sellers", tr.get("unique_sellers"), "#,##0", ""),
@@ -154,7 +155,7 @@ def build_workbook(m: dict, path: str) -> str:
         ("Flagged share of volume", tr.get("flagged_volume_share"), "0.0%", "Investigate before relying on volume"),
         ("Largest wallet pair share of volume", tr.get("top_pair_volume_share"), "0.0%", "High = volume driven by two wallets"),
         ("Median unflagged sale", tr.get("clean_price_p50"), "0.000 \"ETH\"", ""),
-        ("Venue mix", ", ".join(f"{k} {v:.0%}" for k, v in list((tr.get("venue_volume_share") or {}).items())[:5]) or "n/a", None, "Share of USD volume"),
+
     ]
     for label, v, fmt, d in trade_rows:
         r += 1
@@ -168,7 +169,7 @@ def build_workbook(m: dict, path: str) -> str:
     _header(ws, 4, ["Metric", "Value", "Note"], [34, 46, 60])
     own_rows = [
         ("Holder wallets", ow.get("holder_wallets"), "#,##0", "Burn addresses excluded"),
-        ("Tokens counted", ow.get("tokens_counted"), "#,##0", "Should match supply"),
+        ("Source", ow.get("source") or "Holder-level data", None, "Concentration rows need holder-level data; research manually"),
         ("Tokens per wallet", ow.get("tokens_per_wallet"), "0.00", ""),
         ("Top wallet share", ow.get("top1_share"), "0.0%", ""),
         ("Top 10 wallets share", ow.get("top10_share"), "0.0%", ""),
@@ -183,7 +184,7 @@ def build_workbook(m: dict, path: str) -> str:
     for label, v, fmt, d in own_rows:
         r += 1
         _rows(ws, r, [(label, v if v is not None else "n/a", d)])
-        if isinstance(v, (int, float)):
+        if fmt and isinstance(v, (int, float)):
             ws.cell(row=r, column=2).number_format = fmt
     r += 2
     ws.cell(row=r, column=1, value="Top holders (cluster caveat: wallets are not people)").font = H2

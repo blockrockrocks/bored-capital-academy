@@ -1,14 +1,14 @@
-"""Command line: bca snapshot | workbook | run | dune-setup"""
+"""Command line: bca snapshot | workbook | run | tutor | web"""
 from __future__ import annotations
 
 import argparse
 import json
 import os
 import sys
+import time
 from datetime import datetime, timezone
 from pathlib import Path
 
-from . import dune as dune_mod
 from . import opensea as os_mod
 from .metrics import compute_all
 from .sources import SourceLog, utc_now
@@ -22,38 +22,28 @@ def _env(name: str, required: bool = True) -> str | None:
     return v
 
 
-def snapshot(slug: str, days: int, out: Path, skip_dune: bool = False) -> Path:
+def snapshot(slug: str, days: int, out: Path) -> Path:
     run_dir = out / slug / datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
     log = SourceLog(run_dir)
-    meta = {"snapshot_utc": utc_now(), "window_days": days, "dune": False}
+    meta = {"snapshot_utc": utc_now(), "window_days": days}
     try:
         osc = os_mod.OpenSea(_env("OPENSEA_API_KEY"), log)
         collection = os_mod.parse_collection(osc.collection(slug))
         stats = os_mod.parse_stats(osc.stats(slug))
         raw_l, meta["listings_truncated"] = osc.best_listings(slug)
         raw_o, meta["offers_truncated"] = osc.collection_offers(slug)
+        raw_s, meta["sales_truncated"] = osc.sales(slug, int(time.time()) - days * 86400)
         listings, meta["listings_skipped"] = os_mod.parse_listings(raw_l)
         offers, meta["offers_skipped"] = os_mod.parse_offers(raw_o)
-
-        holders, trades = [], []
-        dkey = None if skip_dune else _env("DUNE_API_KEY", required=False)
-        if dkey and collection["contract"]:
-            if (collection.get("chain") or "ethereum") != "ethereum":
-                print(f"Note: Dune SQL is Ethereum-only; {slug} is on {collection['chain']} — skipping Dune.")
-            else:
-                d = dune_mod.Dune(dkey, log)
-                holders = d.run(int(_env("DUNE_QUERY_HOLDERS")), {"contract": collection["contract"]}, "dune_holders")
-                trades = d.run(int(_env("DUNE_QUERY_TRADES")), {"contract": collection["contract"], "days": str(days)}, "dune_trades")
-                meta["dune"] = True
-        elif not skip_dune:
-            print("DUNE_API_KEY not set — ownership and trading tabs will be empty.")
+        trades, meta["sales_skipped"] = os_mod.parse_sales(raw_s)
     finally:
         log.save()
 
     norm = {"collection": collection, "stats": stats, "listings": listings, "offers": offers,
-            "holders": holders, "trades": trades, "meta": meta}
+            "holders": [], "trades": trades, "meta": meta}
     (run_dir / "normalized.json").write_text(json.dumps(norm, indent=1))
-    print(f"Snapshot saved: {run_dir}")
+    print(f"Snapshot saved: {run_dir}\n  listings {len(listings)} (skipped {meta['listings_skipped']}), "
+          f"bids {len(offers)} (skipped {meta['offers_skipped']}), sales {len(trades)} (skipped {meta['sales_skipped']})")
     return run_dir
 
 
@@ -76,15 +66,6 @@ def workbook(run_dir: Path, out: Path | None) -> Path:
     build_workbook(m, str(out))
     print(f"Workbook: {out}\nMetrics:  {run_dir / 'metrics.json'}")
     return out
-
-
-def dune_setup() -> None:
-    d = dune_mod.Dune(_env("DUNE_API_KEY"), None)
-    for name, spec in dune_mod.QUERIES.items():
-        sql = (dune_mod.SQL_DIR / spec["file"]).read_text()
-        qid = d.create_query(f"Bored Capital Academy — {name}", sql, spec["params"])
-        print(f"export DUNE_QUERY_{name.upper()}={qid}")
-    print("Add these lines to your .env (or shell profile).")
 
 
 def tutor_cmd(a) -> None:
@@ -137,12 +118,10 @@ def main(argv=None) -> None:
         s.add_argument("slug", help="OpenSea collection slug, e.g. boredapeyachtclub")
         s.add_argument("--days", type=int, default=30, help="trading window (default 30)")
         s.add_argument("--data", type=Path, default=Path("data"))
-        s.add_argument("--no-dune", action="store_true")
         s.add_argument("--out", type=Path, default=None, help="workbook path (run only)")
     w = sub.add_parser("workbook")
     w.add_argument("path", type=Path, help="run directory, or data/<slug> for the latest run")
     w.add_argument("--out", type=Path, default=None)
-    sub.add_parser("dune-setup")
     t = sub.add_parser("tutor", help="AI tutor: chat | review | redteam")
     t.add_argument("action", choices=["chat", "review", "redteam"])
     t.add_argument("--student", default="anonymous")
@@ -162,12 +141,10 @@ def main(argv=None) -> None:
     if a.cmd == "tutor":
         return tutor_cmd(a)
 
-    if a.cmd == "dune-setup":
-        dune_setup()
-    elif a.cmd == "snapshot":
-        snapshot(a.slug, a.days, a.data, a.no_dune)
+    if a.cmd == "snapshot":
+        snapshot(a.slug, a.days, a.data)
     elif a.cmd == "run":
-        workbook(snapshot(a.slug, a.days, a.data, a.no_dune), a.out)
+        workbook(snapshot(a.slug, a.days, a.data), a.out)
     elif a.cmd == "workbook":
         workbook(latest_run(a.path), a.out)
 

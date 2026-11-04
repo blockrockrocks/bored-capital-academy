@@ -76,15 +76,30 @@ def test_ownership():
     assert o["contract_held_share"] == 0.2 and o["wallets_10plus"] == 2
 
 
+def sale(token, seller, buyer, eth, ts):
+    return {"event_type": "sale", "event_timestamp": ts, "quantity": 1, "seller": seller, "buyer": buyer,
+            "nft": {"identifier": str(token)}, "transaction": "0xtx",
+            "payment": {"quantity": str(int(eth * WEI)), "decimals": 18, "symbol": "ETH"}}
+
+
+def test_parse_sales():
+    rows, skipped = opensea.parse_sales([sale(1, "0xa", "0xb", 10, 1793000000),
+                                         {"event_type": "sale", "payment": {}}])
+    assert skipped == 1 and rows[0]["amount_original"] == 10 and rows[0]["token_id"] == "1"
+    assert rows[0]["block_time"].startswith("2026-")
+
+
 def test_end_to_end_with_mocked_http(tmp_path, monkeypatch):
     """Runs snapshot + workbook through the real CLI code with a fake HTTP session."""
     responses = {
         "/collections/apes": {"collection": "apes", "name": "Test Apes", "total_supply": 100,
                               "contracts": [{"address": "0xabc", "chain": "ethereum"}]},
-        "/collections/apes/stats": {"total": {"floor_price": 10, "num_owners": 32},
+        "/collections/apes/stats": {"total": {"floor_price": 10, "num_owners": 40},
                                     "intervals": [{"interval": "thirty_day", "volume": 80, "sales": 8}]},
         "/listings/collection/apes/best": {"listings": [listing(1, 10), listing(2, 11)]},
         "/offers/collection/apes": {"offers": [offer(9, 1), offer(16, 2)]},
+        "/events/collection/apes": {"asset_events": [sale(1, "0xa", "0xb", 10, 1793000000),
+                                                     sale(2, "0xc", "0xd", 11, 1793086400)]},
     }
 
     class Resp:
@@ -94,40 +109,31 @@ def test_end_to_end_with_mocked_http(tmp_path, monkeypatch):
         def json(self):
             return self.data
 
-        def raise_for_status(self):
-            pass
+    seen = []
 
     class FakeSession:
-        def request(self, method, url, **kw):
-            if "dune.com" in url:
-                if url.endswith("/execute"):
-                    return Resp({"execution_id": "q" + url.split("/")[-2]})
-                if "/results" in url:
-                    rows = ([{"owner": "0xw", "tokens": 70, "is_contract": 0}, {"owner": "0xv", "tokens": 30, "is_contract": 1}]
-                            if "q11" in url else
-                            [{"token_id": "1", "seller": "a", "buyer": "b", "amount_original": 10, "currency_symbol": "ETH",
-                              "amount_usd": 30000, "block_time": "2026-10-01", "project": "blur"}])
-                    return Resp({"result": {"rows": rows}})
-            path = url.split("/api/v2")[1]
-            return Resp(responses[path])
-
-        def get(self, url, **kw):
-            return Resp({"state": "QUERY_STATE_COMPLETED"})
+        def request(self, method, url, params=None, headers=None, **kw):
+            seen.append((url, params, headers))
+            return Resp(responses[url.split("/api/v2")[1]])
 
     monkeypatch.setattr("requests.Session", FakeSession)
-    for k, v in {"OPENSEA_API_KEY": "k", "DUNE_API_KEY": "d", "DUNE_QUERY_HOLDERS": "11", "DUNE_QUERY_TRADES": "22"}.items():
-        monkeypatch.setenv(k, v)
+    monkeypatch.setenv("OPENSEA_API_KEY", "secret-key")
 
     run_dir = cli.snapshot("apes", 30, tmp_path)
     out = cli.workbook(run_dir, None)
 
     sources = json.loads((run_dir / "sources.json").read_text())
-    assert all("k" not in str(s.get("params")) for s in sources)  # keys never stored
-    assert {s["source"] for s in sources} == {"OpenSea", "Dune"}
+    assert "secret-key" not in (run_dir / "sources.json").read_text()  # keys never stored
+    assert all(h["X-API-KEY"] == "secret-key" for _, _, h in seen)
+    assert {s["source"] for s in sources} == {"OpenSea"}
+    sales_params = next(p for u, p, _ in seen if "/events/" in u)
+    assert sales_params["event_type"] == "sale" and sales_params["after"] > 0
 
     m = json.loads((run_dir / "metrics.json").read_text())
     assert m["market"]["floor_eth"] == 10 and m["market"]["best_bid_eth"] == 9
-    assert m["ownership"]["contract_held_share"] == 0.3
+    assert m["trading"]["n_sales"] == 2 and m["trading"]["share_basis"] == "ETH"
+    assert m["ownership"]["holder_wallets"] == 40 and m["ownership"]["tokens_per_wallet"] == 2.5
+    assert m["confidence"]["Ownership and supply"]["level"] == "Low"
 
     wb = load_workbook(out)
     assert wb.sheetnames == ["Read me", "Market snapshot", "Ownership", "Valuation scenarios",

@@ -4,8 +4,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1
 COPY pyproject.toml README.md ./
 COPY bca ./bca
 COPY course ./course
-COPY dune ./dune
-# editable install: code locates course/ and dune/ relative to the source tree
+# editable install: code locates course/ relative to the source tree
 RUN pip install --no-cache-dir -e .
 # data/ (SQLite + snapshots) and logs/ must live on a persistent volume
 ENV BCA_DB=/app/data/academy.sqlite3 BCA_DATA_DIR=/app/data BCA_LOG_DIR=/app/logs

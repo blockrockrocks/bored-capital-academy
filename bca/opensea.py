@@ -48,6 +48,20 @@ class OpenSea:
     def collection_offers(self, slug: str, max_pages: int = 10) -> tuple[list, bool]:
         return self._paged(f"/offers/collection/{slug}", "os_offers", "offers", max_pages)
 
+    def sales(self, slug: str, after_unix: int, max_pages: int = 60) -> tuple[list, bool]:
+        """Sale events since `after_unix`, newest first, 50 per page."""
+        items, cursor = [], None
+        for page in range(max_pages):
+            params = {"event_type": "sale", "after": after_unix, "limit": 50}
+            if cursor:
+                params["next"] = cursor
+            data = self._get(f"/events/collection/{slug}", f"os_sales_p{page}", params)
+            items.extend(data.get("asset_events", []))
+            cursor = data.get("next")
+            if not cursor:
+                return items, False
+        return items, True
+
 
 def _amount(price: dict) -> tuple[float, str] | None:
     try:
@@ -96,6 +110,30 @@ def parse_offers(raw: list) -> tuple[list[dict], int]:
             skipped += 1
             continue
         out.append({"price_eth": amt[0] / qty, "units": units, "maker": item.get("maker") or ""})
+    return out, skipped
+
+
+def parse_sales(raw: list) -> tuple[list[dict], int]:
+    """Sale events -> the trade rows metrics.trading_quality expects."""
+    from datetime import datetime, timezone
+    out, skipped = [], 0
+    for e in raw:
+        pay = e.get("payment") or {}
+        nft = e.get("nft") or {}
+        try:
+            qty = max(int(e.get("quantity") or 1), 1)
+            amount = int(pay["quantity"]) / 10 ** int(pay.get("decimals", 18)) / qty
+            ts = datetime.fromtimestamp(int(e.get("event_timestamp") or e.get("closing_date")), timezone.utc)
+        except (KeyError, TypeError, ValueError):
+            skipped += 1
+            continue
+        if nft.get("identifier") is None or not e.get("buyer") or not e.get("seller"):
+            skipped += 1
+            continue
+        out.append({"block_time": ts.strftime("%Y-%m-%d %H:%M:%S"), "token_id": str(nft["identifier"]),
+                    "buyer": e["buyer"], "seller": e["seller"], "amount_original": amount,
+                    "currency_symbol": (pay.get("symbol") or "").upper(), "amount_usd": None,
+                    "project": "opensea", "tx_hash": e.get("transaction")})
     return out, skipped
 
 

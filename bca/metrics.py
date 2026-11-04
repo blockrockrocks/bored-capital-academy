@@ -103,18 +103,22 @@ def trading_quality(trades: list[dict], supply: int | None, window_days: int) ->
         t["flags"] = reasons
     flagged = [t for t in norm if t["flags"]]
     clean_eth = [t["eth"] for t in norm if not t["flags"] and t["eth"]]
-    total_usd = sum(t["usd"] or 0 for t in norm)
+    # Volume shares use USD when every trade has it, otherwise ETH-priced sales
+    use_usd = all(t["usd"] is not None for t in norm)
+    w = (lambda t: t["usd"] or 0) if use_usd else (lambda t: t["eth"] or 0)
+    total_usd = sum(w(t) for t in norm)
     pair_usd = defaultdict(float)
     for t in norm:
-        pair_usd[tuple(sorted((t["buyer"], t["seller"])))] += t["usd"] or 0
+        pair_usd[tuple(sorted((t["buyer"], t["seller"])))] += w(t)
     venues = Counter()
     for t in norm:
-        venues[t["venue"]] += t["usd"] or 0
+        venues[t["venue"]] += w(t)
     return {
         "window_days": window_days,
         "n_sales": len(norm),
         "volume_eth": sum(t["eth"] or 0 for t in norm),
-        "volume_usd": total_usd,
+        "volume_usd": total_usd if use_usd else None,
+        "share_basis": "USD" if use_usd else "ETH",
         "unique_tokens_traded": len(token_counts),
         "turnover_pct": _div(len(token_counts), supply),
         "unique_buyers": len({t["buyer"] for t in norm}),
@@ -122,7 +126,7 @@ def trading_quality(trades: list[dict], supply: int | None, window_days: int) ->
         "active_trading_days": len({t["day"] for t in norm}),
         "active_days_pct": len({t["day"] for t in norm}) / window_days if window_days else None,
         "flagged_sales": len(flagged),
-        "flagged_volume_share": _div(sum(t["usd"] or 0 for t in flagged), total_usd),
+        "flagged_volume_share": _div(sum(w(t) for t in flagged), total_usd),
         "flag_counts": dict(Counter(r for t in flagged for r in t["flags"])),
         "top_pair_volume_share": _div(max(pair_usd.values(), default=0), total_usd),
         "venue_volume_share": {k: v / total_usd for k, v in venues.most_common()} if total_usd else {},
@@ -134,6 +138,17 @@ def trading_quality(trades: list[dict], supply: int | None, window_days: int) ->
 
 
 # --------------------------------------------------------------- ownership
+def ownership_from_owner_count(owners: int | None, supply: int | None) -> dict:
+    """OpenSea only reports the number of owner wallets; concentration needs holder-level data."""
+    if not owners:
+        return {"holder_wallets": 0}
+    return {"holder_wallets": owners, "tokens_counted": None, "supply": supply,
+            "tokens_per_wallet": supply / owners if supply else None, "source": "OpenSea owner count",
+            "top1_share": None, "top10_share": None, "top50_share": None, "wallets_controlling_50pct": None,
+            "hhi": None, "wallets_10plus": None, "single_token_wallets_pct": None, "contract_held_share": None,
+            "top_holders": []}
+
+
 def ownership(holders: list[dict], supply: int | None) -> dict:
     rows = [(str(h["owner"]).lower(), int(h["tokens"]), bool(int(h.get("is_contract") or 0)))
             for h in holders if str(h.get("owner", "")).lower() not in BURN and int(h.get("tokens") or 0) > 0]
@@ -190,11 +205,15 @@ def confidence(market: dict, trading: dict, own: dict, meta: dict) -> dict:
         return ("Low" if low_if else "Medium" if issues else "High"), issues
 
     liq_issues = ["Bids may be unfunded or cancelled; OpenSea collection offers only (other venues excluded)"]
+    if meta.get("sales_truncated"):
+        tr_extra = ["Sales history pagination truncated"]
+    else:
+        tr_extra = []
     if meta.get("listings_truncated") or meta.get("offers_truncated"):
         liq_issues.append("Order book pagination truncated")
     liq = grade(liq_issues, not market.get("floor_eth") or not market.get("best_bid_eth"))
 
-    tr_issues = []
+    tr_issues = ["OpenSea sales only; trades on other marketplaces are not included"] + tr_extra
     n = trading.get("n_sales", 0)
     if n < 30:
         tr_issues.append(f"Only {n} sales in window")
@@ -203,11 +222,14 @@ def confidence(market: dict, trading: dict, own: dict, meta: dict) -> dict:
     tr = grade(tr_issues, n < 10)
 
     own_issues = ["Wallets are not people: one owner can use many wallets"]
+    if own.get("source") == "OpenSea owner count":
+        own_issues.append("Only the owner-wallet count is automated; research concentration and contract-held "
+                          "tokens manually (e.g. the Etherscan token holders page)")
     if (own.get("contract_held_share") or 0) > 0.05:
         own_issues.append(f"{own['contract_held_share']:.0%} of tokens sit in contracts (vaults/escrow/lending)")
     if own.get("supply") and own.get("tokens_counted") and abs(own["tokens_counted"] - own["supply"]) / own["supply"] > 0.02:
         own_issues.append("Token count differs from reported supply by >2%")
-    ow = grade(own_issues, not own.get("holder_wallets"))
+    ow = grade(own_issues, not own.get("holder_wallets") or own.get("source") == "OpenSea owner count")
 
     manual = ("Manual", ["No automated data — student must research and cite primary sources"])
     return {"Liquidity and exit depth": liq, "Trading activity and quality": tr,
@@ -219,7 +241,8 @@ def compute_all(norm: dict) -> dict:
     supply = norm["collection"].get("total_supply")
     market = market_snapshot(norm["listings"], norm["offers"], supply)
     trading = trading_quality(norm.get("trades") or [], supply, norm["meta"].get("window_days", 30))
-    own = ownership(norm.get("holders") or [], supply)
+    own = (ownership(norm["holders"], supply) if norm.get("holders")
+           else ownership_from_owner_count((norm.get("stats") or {}).get("reported_owners"), supply))
     return {
         "collection": norm["collection"], "snapshot_utc": norm["meta"]["snapshot_utc"],
         "opensea_reported": norm.get("stats", {}), "market": market, "trading": trading,
