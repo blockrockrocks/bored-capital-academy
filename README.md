@@ -31,8 +31,8 @@ education tool rather than a signal service, in line with the MiCA boundary on p
 ## Setup (one time)
 
 1. Python 3.10+, then `pip install -e .`
-2. Get keys: OpenSea API key (docs.opensea.io) and Dune API key (dune.com → Settings → API).
-3. `cp .env.example .env`, add both keys, then load them: `set -a; source .env; set +a`
+2. Get keys: OpenSea API key (docs.opensea.io), Dune API key (dune.com → Settings → API) and Anthropic API key (platform.claude.com) for the tutor.
+3. `cp .env.example .env`, add your keys, then load them: `set -a; source .env; set +a`
 4. Create the two Dune queries in your Dune account:
    ```
    python -m bca dune-setup
@@ -50,6 +50,20 @@ python -m bca snapshot <slug>             # fetch only
 python -m bca workbook data/<slug>        # rebuild workbook from the latest snapshot
 python -m pytest -q                       # tests (synthetic inputs, no network)
 ```
+
+## AI tutor
+
+```
+python -m bca tutor chat --student ana     # terminal chat (web UI comes with the course platform)
+python -m bca tutor review --days 7        # weekly founder review of flagged conversations
+python -m bca tutor redteam                # advice-boundary test, 15 prompts (spends API credits)
+```
+
+- **Knowledge:** `course/*.md` (written from the business case) plus live numbers from `metrics.json` through a tool. The tutor never quotes market figures from memory and always gives the snapshot time.
+- **Advice boundary (MiCA):** every learner message is classified first. Buy/sell/hold, price-prediction or portfolio questions get a boundary reminder for that turn and are flagged. Replies with recommendation-like wording are flagged too. Admin questions, distress and repeated advice-seeking are escalated to you.
+- **Logs:** each conversation goes to `logs/tutor/<id>.jsonl` and each flag to `logs/review_queue.jsonl`.
+- **Before launch:** fill in `course/05_admin_faq.md` (refunds, VAT, access, Q&A schedule). Until then the tutor says you'll follow up.
+- **Model:** the default is set in `bca/tutor.py` (medium effort), with server-side refusal fallback (`fallbacks: "default"`). Change it with `BCA_TUTOR_MODEL`, `BCA_TUTOR_EFFORT` and `BCA_GUARD_MODEL`. A cheaper guard model cuts cost per message; re-run `redteam` after any change.
 
 ## Known limits (v0.1)
 

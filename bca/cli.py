@@ -87,6 +87,27 @@ def dune_setup() -> None:
     print("Add these lines to your .env (or shell profile).")
 
 
+def tutor_cmd(a) -> None:
+    from . import tutor, tutor_redteam
+    if a.action == "review":
+        print(tutor.review(a.logs, a.days))
+    elif a.action == "redteam":
+        sys.exit(1 if tutor_redteam.run(a.data) else 0)
+    else:
+        t = tutor.Tutor(student=a.student, data_dir=a.data, log_dir=a.logs)
+        print("Bored Capital Academy tutor — type 'exit' to quit. Educational use only; not investment advice.\n")
+        while True:
+            try:
+                q = input("you> ").strip()
+            except (EOFError, KeyboardInterrupt):
+                break
+            if q.lower() in {"exit", "quit"}:
+                break
+            if q:
+                print(f"\ntutor> {t.send(q)}\n")
+        print(f"Conversation log: {t.log_path}")
+
+
 def main(argv=None) -> None:
     p = argparse.ArgumentParser(prog="bca", description="Bored Capital Academy data pipeline")
     sub = p.add_subparsers(dest="cmd", required=True)
@@ -101,7 +122,16 @@ def main(argv=None) -> None:
     w.add_argument("path", type=Path, help="run directory, or data/<slug> for the latest run")
     w.add_argument("--out", type=Path, default=None)
     sub.add_parser("dune-setup")
+    t = sub.add_parser("tutor", help="AI tutor: chat | review | redteam")
+    t.add_argument("action", choices=["chat", "review", "redteam"])
+    t.add_argument("--student", default="anonymous")
+    t.add_argument("--days", type=int, default=7, help="review window")
+    t.add_argument("--data", type=Path, default=Path("data"))
+    t.add_argument("--logs", type=Path, default=Path("logs"))
     a = p.parse_args(argv)
+
+    if a.cmd == "tutor":
+        return tutor_cmd(a)
 
     if a.cmd == "dune-setup":
         dune_setup()
