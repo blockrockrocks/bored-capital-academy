@@ -108,6 +108,27 @@ def tutor_cmd(a) -> None:
         print(f"Conversation log: {t.log_path}")
 
 
+def web_cmd(a) -> None:
+    from .web import mailer, ops
+    from .web.config import Settings
+    from .web.db import DB
+    s = Settings()
+    if a.action == "serve":
+        import uvicorn
+        from .web.app import create_app
+        if s.secret_key == "dev-only-change-me":
+            print("WARNING: BCA_SECRET_KEY is the development default. Set a long random value in production.")
+        uvicorn.run(create_app(s), host=a.host, port=a.port, proxy_headers=True)
+    elif a.action == "followups":
+        print(f"Survey emails sent: {ops.followups(s, DB(s.db_path), mailer.Mailer(s))}")
+    elif a.action == "stats":
+        print(ops.stats(DB(s.db_path)))
+    elif a.action == "simulate-purchase":
+        if not a.email:
+            sys.exit("--email is required")
+        print(ops.simulate_purchase(s, a.email, a.tier))
+
+
 def main(argv=None) -> None:
     p = argparse.ArgumentParser(prog="bca", description="Bored Capital Academy data pipeline")
     sub = p.add_subparsers(dest="cmd", required=True)
@@ -128,8 +149,16 @@ def main(argv=None) -> None:
     t.add_argument("--days", type=int, default=7, help="review window")
     t.add_argument("--data", type=Path, default=Path("data"))
     t.add_argument("--logs", type=Path, default=Path("logs"))
+    w2 = sub.add_parser("web", help="website: serve | followups | stats | simulate-purchase")
+    w2.add_argument("action", choices=["serve", "followups", "stats", "simulate-purchase"])
+    w2.add_argument("--host", default="127.0.0.1")
+    w2.add_argument("--port", type=int, default=8000)
+    w2.add_argument("--email")
+    w2.add_argument("--tier", default="self", choices=["self", "live"])
     a = p.parse_args(argv)
 
+    if a.cmd == "web":
+        return web_cmd(a)
     if a.cmd == "tutor":
         return tutor_cmd(a)
 

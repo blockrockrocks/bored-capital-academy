@@ -1,0 +1,8 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="wrap narrow section">
+  <h1>{{ title }}</h1>
+  <p class="lede">{{ body }}</p>
+  {% if show_login %}<p><a class="btn primary" href="/login">Get a new login link</a></p>{% endif %}
+</section>
+{% endblock %}

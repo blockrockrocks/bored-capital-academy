@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}Tutor · Bored Capital Academy{% endblock %}
+{% block bodyclass %}tutor-page{% endblock %}
+{% block content %}
+<section class="wrap narrow section">
+  <div class="tutor-head">
+    <div><p class="eyebrow"><a href="/course">My course</a> · AI tutor</p>
+    <h1 class="h2">Ask the tutor</h1></div>
+    <button class="btn ghost small" id="reset">New conversation</button>
+  </div>
+  <p class="fineprint">The tutor explains the course methods and the latest snapshot data. It can't give personal
+    buy, sell or hold recommendations or price predictions. Conversations are logged and reviewed to improve the course.</p>
+  <div id="chat" class="chat" aria-live="polite">
+    <div class="msg tutor"><p>Hi! Ask me about any course concept, how to score a dimension, or what the latest data says about a collection, for example <em>“What does the exit curve show for BAYC?”</em></p></div>
+  </div>
+  <form id="ask" class="ask">
+    <textarea id="q" rows="2" placeholder="Type your question…" required maxlength="4000"></textarea>
+    <button class="btn primary" id="send">Send</button>
+  </form>
+</section>
+{% endblock %}
+{% block scripts %}<script src="/static/tutor.js"></script>{% endblock %}

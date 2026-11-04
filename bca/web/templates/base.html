@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Bored Capital Academy · Think Beyond the Floor{% endblock %}</title>
+  <meta name="description" content="Advanced NFT market education: liquidity, ownership and evidence-based valuation. Educational only, not investment advice.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/style.css">
+  {% block head %}{% endblock %}
+</head>
+<body class="{% block bodyclass %}{% endblock %}">
+  <header class="nav">
+    <div class="wrap nav-inner">
+      <a class="brand" href="/"><span class="brand-mark" aria-hidden="true"></span>Bored Capital <span>Academy</span></a>
+      <nav>
+        {% if user %}
+          <a href="/course">My course</a>
+          <a href="/course/tutor">Tutor</a>
+          <form method="post" action="/logout" class="inline"><button class="link">Log out</button></form>
+        {% else %}
+          <a href="/#curriculum">Curriculum</a>
+          <a href="/#pricing">Pricing</a>
+          <a href="/login">Log in</a>
+        {% endif %}
+      </nav>
+    </div>
+  </header>
+  <main>{% block content %}{% endblock %}</main>
+  <footer class="footer">
+    <div class="wrap footer-inner">
+      <div>
+        <strong>Bored Capital Academy</strong> is operated by BlockRock OÜ (Estonia).<br>
+        Educational content only. Nothing on this site or in the course is investment, legal or tax advice,
+        or a recommendation to buy, sell or hold any asset.<br>
+        Bored Capital Academy is independent and is not affiliated with, endorsed or sponsored by Yuga Labs or Bored Ape Yacht Club.
+      </div>
+      <div class="footer-links">
+        <a href="/legal/terms">Terms</a><a href="/legal/privacy">Privacy</a><a href="/legal/imprint">Imprint</a>
+      </div>
+    </div>
+  </footer>
+  {% block scripts %}{% endblock %}
+</body>
+</html>

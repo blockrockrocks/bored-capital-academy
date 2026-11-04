@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block title %}Module {{ m.n }} · Bored Capital Academy{% endblock %}
+{% block content %}
+<section class="wrap narrow section lesson">
+  <p class="eyebrow"><a href="/course">My course</a> · Module {{ m.n }}</p>
+  {% if video %}
+  <div class="video"><iframe src="{{ video }}" title="Module {{ m.n }} video" allow="fullscreen; picture-in-picture" loading="lazy"></iframe></div>
+  {% elif m.n < 3 %}
+  <div class="video placeholder">Video coming soon</div>
+  {% endif %}
+  <article class="prose">{{ html|safe }}</article>
+  <nav class="pager">
+    {% if prev %}<a class="btn ghost" href="/course/module/{{ prev }}">← Module {{ prev }}</a>{% else %}<span></span>{% endif %}
+    <a class="btn ghost" href="/course/tutor">Ask the tutor</a>
+    {% if next %}<a class="btn primary" href="/course/module/{{ next }}">Module {{ next }} →</a>{% endif %}
+  </nav>
+</section>
+{% endblock %}

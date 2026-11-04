@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="wrap narrow section">
+  <h1>Course feedback</h1>
+  <form method="post" action="/survey" class="card form">
+    <fieldset><legend>Overall, how was the course?</legend>
+      <div class="scale">{% for i in range(1,6) %}<label><input type="radio" name="overall" value="{{ i }}" required>{{ i }}</label>{% endfor %}</div>
+      <small>1 = poor · 5 = excellent</small></fieldset>
+    <fieldset><legend>How much did you learn that you can actually use?</legend>
+      <div class="scale">{% for i in range(1,6) %}<label><input type="radio" name="learned" value="{{ i }}" required>{{ i }}</label>{% endfor %}</div></fieldset>
+    <fieldset><legend>How likely are you to recommend it to another collector?</legend>
+      <div class="scale wide">{% for i in range(0,11) %}<label><input type="radio" name="recommend" value="{{ i }}" required>{{ i }}</label>{% endfor %}</div></fieldset>
+    <label>What should we improve?<textarea name="comment" rows="4" maxlength="2000"></textarea></label>
+    <button class="btn primary">Send feedback</button>
+  </form>
+</section>
+{% endblock %}

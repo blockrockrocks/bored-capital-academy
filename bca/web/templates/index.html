@@ -1,0 +1,162 @@
+{% extends "base.html" %}
+{% block bodyclass %}home{% endblock %}
+{% block content %}
+<section class="hero">
+  <div class="wrap hero-inner">
+    <div class="hero-copy">
+      <p class="eyebrow">Course 01 · The NFT Investor's Playbook</p>
+      <h1>Think Beyond the Floor.</h1>
+      <p class="lede">Learn how NFT markets really trade, what collectible benefits may be worth, and how to
+        document uncertainty before reaching conclusions. A self-paced course for serious collectors,
+        built around BAYC as a working case study.</p>
+      <div class="cta-row">
+        <a class="btn primary" href="#pricing">Get the course</a>
+        <a class="btn ghost" href="#curriculum">See the curriculum</a>
+      </div>
+      <p class="fineprint">Education, not signals. No price predictions, no buy/sell calls.</p>
+    </div>
+    <figure class="gap-card" aria-label="Illustration: three different prices for the same collection">
+      <p class="gap-title">The liquidity gap</p>
+      <p class="gap-sub">Three “prices” for the same collection, at the same moment</p>
+      <div class="gap-row"><span>Lowest listing <em>(the floor)</em></span><div class="bar"><i style="width:100%"></i></div></div>
+      <div class="gap-row"><span>Recent comparable sales</span><div class="bar"><i style="width:91%"></i></div></div>
+      <div class="gap-row"><span>Best live bid</span><div class="bar"><i style="width:84%"></i></div></div>
+      <div class="gap-row"><span>Selling 10 into the bids</span><div class="bar warn"><i style="width:71%"></i></div></div>
+      <figcaption>Illustrative shape only, not market data. In the course you measure the real gap with live data.</figcaption>
+    </figure>
+  </div>
+</section>
+
+<section class="band">
+  <div class="wrap three">
+    <div><h3>Floor price × supply is not value</h3><p>It's a headline. Learn what owners could actually realise, given bid depth, slippage and selling pressure.</p></div>
+    <div><h3>Volume can lie</h3><p>Spot self-trades, reciprocal wallets and churned tokens before you trust an activity chart.</p></div>
+    <div><h3>Wallets aren't people</h3><p>Read holder concentration properly, including tokens parked in vaults, escrow and lending contracts.</p></div>
+  </div>
+</section>
+
+<section id="curriculum" class="wrap section">
+  <p class="eyebrow">Curriculum</p>
+  <h2>Two modules, one reusable research toolkit</h2>
+  <div class="modules">
+    {% for m in modules %}
+    <article class="module-card">
+      <span class="num">{{ "%02d"|format(m.n) }}</span>
+      <h3>{{ m.title }}</h3>
+      <p>{{ m.summary }}</p>
+    </article>
+    {% endfor %}
+  </div>
+  <div class="outcomes">
+    <h3>You'll finish able to</h3>
+    <ul>
+      <li>Separate floor, best bid, observed sale and estimated liquid exit value</li>
+      <li>Build turnover and holder-concentration diagnostics</li>
+      <li>Explain why collectible fair value is uncertain and often not cash-flow based</li>
+      <li>Recognise what changes with physical redemption, sealed packs and rarity</li>
+      <li>Write a short, evidence-based collection note with assumptions and unknowns</li>
+    </ul>
+  </div>
+</section>
+
+<section class="wrap section split">
+  <div>
+    <p class="eyebrow">What you get</p>
+    <h2>The Ape Analytics Scorecard</h2>
+    <p>A workbook you'll keep using: market snapshot, exit curve, ownership, valuation scenarios and a weighted
+      scorecard with a data-confidence indicator. It's refreshed with live OpenSea and Dune data and every number is time-stamped.
+      Use it on any collection six months from now, no subscription needed.</p>
+    <p>Stuck? The <strong>AI tutor</strong> knows the course and the latest data, and answers around the clock.
+      It teaches the method. It won't tell you what to buy.</p>
+  </div>
+  <ul class="checklist">
+    <li>Liquidity and exit depth <b>30%</b></li>
+    <li>Trading activity and quality <b>20%</b></li>
+    <li>Ownership and supply <b>20%</b></li>
+    <li>Benefits, rights and use cases <b>15%</b></li>
+    <li>Execution and transparency <b>15%</b></li>
+  </ul>
+</section>
+
+<section id="pricing" class="pricing-band">
+  <div class="wrap section">
+    <p class="eyebrow">Pricing</p>
+    <h2>One payment. Keep the toolkit.</h2>
+    <div class="tiers">
+      {% for t in s.tiers %}
+      <article class="tier {% if t.highlight %}highlight{% endif %}">
+        {% if t.highlight %}<span class="badge">With the founder</span>{% endif %}
+        <h3>{{ t.name }}</h3>
+        <p class="price">{{ t.price_display }}</p>
+        <ul>{% for f in t.features %}<li>{{ f }}</li>{% endfor %}</ul>
+        <button class="btn {% if t.highlight %}primary{% else %}ghost{% endif %} buy" data-tier="{{ t.key }}"
+                data-price="{{ t.paddle_price_id }}" data-name="{{ t.name }}">Choose {{ t.name }}</button>
+      </article>
+      {% endfor %}
+    </div>
+    <p class="fineprint center">The final price, including VAT where applicable, is shown at checkout. Payments, invoices
+      and refunds are handled by Paddle.com, our merchant of record.</p>
+  </div>
+</section>
+
+<section class="wrap section faq">
+  <p class="eyebrow">FAQ</p>
+  <h2>Questions</h2>
+  <details><summary>Will you tell me which NFTs to buy?</summary><p>No. This is education. You learn a research method and apply it yourself. We don't give personal recommendations, price targets or signals, and neither does the AI tutor.</p></details>
+  <details><summary>Do I need to connect a wallet?</summary><p>No. There's no wallet connection and no token gating. You pay in euros by card or another standard method.</p></details>
+  <details><summary>Is this official BAYC content?</summary><p>No. Bored Capital Academy is independent and not affiliated with Yuga Labs or BAYC. BAYC is used as a public case study.</p></details>
+  <details><summary>Who is it for?</summary><p>Collectors who know the basics and want rigorous methods: BAYC and MAYC holders, multi-collection collectors and community organisers.</p></details>
+  <details><summary>What's in the Live tier?</summary><p>Group Q&A sessions with the founder and personal feedback on your one-page assessment, on top of everything in Self-paced.</p></details>
+  <details><summary>Running a club or community?</summary><p>Private workshops for Ape clubs and communities are available. Get in touch via the imprint page.</p></details>
+</section>
+
+<dialog id="checkout-dialog">
+  <form method="dialog" id="checkout-form">
+    <h3>Get <span id="dlg-tier"></span></h3>
+    <label>Email for course access<input type="email" id="dlg-email" required autocomplete="email"></label>
+    <label class="check"><input type="checkbox" required> <span>I agree to the <a href="/legal/terms" target="_blank">course terms</a> and have read the <a href="/legal/privacy" target="_blank">privacy notice</a>.</span></label>
+    <label class="check"><input type="checkbox" required> <span>I want access to the digital course immediately and understand that I lose my 14-day right of withdrawal once access begins.</span></label>
+    <label class="check"><input type="checkbox" required> <span>I understand this course is educational and is not investment advice.</span></label>
+    <div class="cta-row">
+      <button class="btn primary" id="dlg-continue" value="go">Continue to payment</button>
+      <button class="btn ghost" value="cancel" formnovalidate>Cancel</button>
+    </div>
+    {% if not checkout_ready %}<p class="warn-note">Checkout is not configured yet (Paddle keys and price IDs missing).</p>{% endif %}
+  </form>
+</dialog>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.paddle.com/paddle/v2/paddle.js"></script>
+<script>
+  const PADDLE_TOKEN = {{ s.paddle_client_token|tojson }};
+  const PADDLE_ENV = {{ s.paddle_env|tojson }};
+  const BASE_URL = {{ s.base_url|tojson }};
+  if (PADDLE_TOKEN && window.Paddle) {
+    if (PADDLE_ENV !== "production") Paddle.Environment.set("sandbox");
+    Paddle.Initialize({ token: PADDLE_TOKEN });
+  }
+  const dlg = document.getElementById("checkout-dialog");
+  let chosen = null;
+  document.querySelectorAll(".buy").forEach(b => b.addEventListener("click", () => {
+    chosen = b.dataset;
+    document.getElementById("dlg-tier").textContent = b.dataset.name;
+    dlg.showModal();
+  }));
+  document.getElementById("checkout-form").addEventListener("submit", (e) => {
+    if (e.submitter && e.submitter.value === "cancel") return;
+    const email = document.getElementById("dlg-email").value.trim().toLowerCase();
+    if (!PADDLE_TOKEN || !chosen.price || !window.Paddle) {
+      e.preventDefault();
+      alert("Checkout isn't configured yet.");
+      return;
+    }
+    Paddle.Checkout.open({
+      items: [{ priceId: chosen.price, quantity: 1 }],
+      customer: { email },
+      customData: { email, tier: chosen.tier, consent_terms: true, consent_immediate_access: true, consent_not_advice: true },
+      settings: { successUrl: BASE_URL + "/thanks", displayMode: "overlay", theme: "light" }
+    });
+  });
+</script>
+{% endblock %}

@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="wrap section">
+  <p class="eyebrow">My course · {{ s.tier(user.tier).name }}</p>
+  <h1>The NFT Investor's Playbook</h1>
+  <div class="course-grid">
+    <div>
+      <h2 class="h3">Modules</h2>
+      <ol class="module-list">
+        {% for m in modules %}
+        <li><a href="/course/module/{{ m.n }}"><span class="num">{{ "%02d"|format(m.n) }}</span>
+          <span><strong>{{ m.title }}</strong><br><small>{{ m.summary }}</small></span></a></li>
+        {% endfor %}
+      </ol>
+      <h2 class="h3">Your assessment</h2>
+      <div class="card">
+        <p>Pick a collection, complete the scorecard and fill in the <b>One-page report</b> tab: market snapshot,
+          liquidity score, ownership observations, rights and utility, principal risks, sources, assumptions and one unanswered question.
+          It's graded on completeness and reasoning, never on a price call.</p>
+        {% if user.tier == "live" %}<p>Live tier: email your finished workbook to receive personal feedback.</p>{% endif %}
+      </div>
+    </div>
+    <aside>
+      <div class="card accent">
+        <h3>AI tutor</h3>
+        <p>Ask about any concept, the scorecard, or the latest data for a collection.</p>
+        <a class="btn primary" href="/course/tutor">Open the tutor</a>
+      </div>
+      <div class="card">
+        <h3>Workbooks</h3>
+        {% if workbooks %}
+        <ul class="plain">{% for w in workbooks %}
+          <li><a href="/course/workbook/{{ w.slug }}">{{ w.slug }}</a> <small>snapshot {{ w.snapshot }}</small></li>
+        {% endfor %}</ul>
+        {% else %}<p><small>Workbooks appear here after the next data refresh.</small></p>{% endif %}
+      </div>
+      {% if user.tier == "live" %}
+      <div class="card">
+        <h3>Live Q&amp;A</h3>
+        <p>{{ s.live_qa_info }}</p>
+      </div>
+      {% endif %}
+      <div class="card">
+        <h3>Feedback</h3>
+        <p><a href="/survey">Two-minute survey</a>. It helps improve the course.</p>
+      </div>
+    </aside>
+  </div>
+</section>
+{% endblock %}
