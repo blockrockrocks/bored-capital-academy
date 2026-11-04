@@ -85,7 +85,7 @@ def trading_quality(trades: list[dict], supply: int | None, window_days: int) ->
         norm.append({
             "token": str(t.get("token_id")), "buyer": (t.get("buyer") or "").lower(),
             "seller": (t.get("seller") or "").lower(), "day": str(t.get("block_time", ""))[:10],
-            "eth": float(t["amount_original"]) if (t.get("currency_symbol") or "").upper() in {"ETH", "WETH"}
+            "eth": float(t["amount_original"]) if (t.get("currency_symbol") or "").upper() in {"ETH", "WETH", "BETH"}
                    and t.get("amount_original") is not None else None,
             "usd": float(t["amount_usd"]) if t.get("amount_usd") is not None else None,
             "venue": t.get("project") or "unknown",

@@ -89,6 +89,29 @@ def test_parse_sales():
     assert rows[0]["block_time"].startswith("2026-")
 
 
+REAL = json.loads((__import__("pathlib").Path(__file__).parent / "fixtures" / "opensea_real_bayc.json").read_text())
+
+
+def test_parse_offers_real_v2_shape():
+    """Real offers have no 'maker' (bidder is protocol_data.parameters.offerer) and give price_per_item."""
+    rows, skipped = opensea.parse_offers(REAL["offers"])
+    assert skipped == 0
+    assert [(r["price_eth"], r["units"]) for r in rows] == [(4.62, 1), (3.57, 8)]
+    assert all(r["maker"].startswith("0x") for r in rows)
+    assert metrics.market_snapshot([{"token_id": "1", "price_eth": 5.0}], rows, 100)["bid_makers"] == 2
+
+
+def test_parse_sales_real_v2_shape():
+    """Real events: phantom A->A leg in the same tx is dropped, BETH counts as ETH, venue from protocol_address."""
+    rows, skipped = opensea.parse_sales(REAL["sales"])
+    assert skipped == 1 and len(rows) == 3
+    assert all(r["buyer"] != r["seller"] for r in rows)
+    assert [r["project"] for r in rows] == ["other marketplace", "other marketplace", "opensea"]
+    q = metrics.trading_quality(rows, 9996, 30)
+    assert q["clean_sales_with_eth_price"] == 3 and "self-trade" not in q["flag_counts"]
+    assert q["volume_eth"] == pytest.approx(5.62 + 5.4 + sum(r["amount_original"] for r in rows[2:]))
+
+
 def test_end_to_end_with_mocked_http(tmp_path, monkeypatch):
     """Runs snapshot + workbook through the real CLI code with a fake HTTP session."""
     responses = {

@@ -10,7 +10,11 @@ import requests
 from .sources import SourceLog
 
 BASE = "https://api.opensea.io/api/v2"
-ETH_LIKE = {"ETH", "WETH"}
+# BETH is Blur's pool ETH, redeemable 1:1; real BAYC sale events are paid in it.
+ETH_LIKE = {"ETH", "WETH", "BETH"}
+# OpenSea's Seaport 1.6 contract. Sale events with any other (or no) protocol_address
+# happened on another marketplace and are aggregated by OpenSea.
+SEAPORT = "0x0000000000000068f116a894984e2db1123eb395"
 
 
 class OpenSea:
@@ -98,26 +102,46 @@ def parse_offers(raw: list) -> tuple[list[dict], int]:
         if crit.get("trait") or crit.get("traits"):
             skipped += 1
             continue
-        amt = _amount(item.get("price") or {})
+        params = (item.get("protocol_data") or {}).get("parameters") or {}
         try:
-            qty = int(item["protocol_data"]["parameters"]["consideration"][0]["startAmount"])
+            qty = int(params["consideration"][0]["startAmount"])
         except (KeyError, IndexError, TypeError, ValueError):
             qty = 1
         qty = max(qty, 1)
+        per_item = _amount(item.get("price_per_item") or {})
+        total = _amount(item.get("price") or {})
+        amt = per_item or (total and (total[0] / qty, total[1]))
         remaining = item.get("remaining_quantity")
         units = int(remaining) if isinstance(remaining, (int, str)) and str(remaining).isdigit() else qty
         if not amt or amt[1] not in ETH_LIKE or amt[0] <= 0 or units <= 0:
             skipped += 1
             continue
-        out.append({"price_eth": amt[0] / qty, "units": units, "maker": item.get("maker") or ""})
+        # Real v2 offers carry the bidder as protocol_data.parameters.offerer, not "maker".
+        maker = item.get("maker")
+        if isinstance(maker, dict):
+            maker = maker.get("address")
+        maker = (maker or params.get("offerer") or "").lower()
+        out.append({"price_eth": amt[0], "units": units, "maker": maker})
     return out, skipped
 
 
 def parse_sales(raw: list) -> tuple[list[dict], int]:
-    """Sale events -> the trade rows metrics.trading_quality expects."""
+    """Sale events -> the trade rows metrics.trading_quality expects.
+
+    OpenSea sometimes reports a sale routed through an intermediary twice in the same
+    transaction: the real leg (A -> B) and a phantom leg (A -> A). The phantom leg is
+    dropped (counted as skipped) so it does not show up as a self-trade.
+    """
+    from collections import Counter
     from datetime import datetime, timezone
     out, skipped = [], 0
+    legs = Counter((e.get("transaction"), str((e.get("nft") or {}).get("identifier")))
+                   for e in raw if e.get("buyer") and e.get("buyer") != e.get("seller"))
     for e in raw:
+        key = (e.get("transaction"), str((e.get("nft") or {}).get("identifier")))
+        if e.get("transaction") and e.get("buyer") and e.get("buyer") == e.get("seller") and legs[key]:
+            skipped += 1
+            continue
         pay = e.get("payment") or {}
         nft = e.get("nft") or {}
         try:
@@ -133,7 +157,8 @@ def parse_sales(raw: list) -> tuple[list[dict], int]:
         out.append({"block_time": ts.strftime("%Y-%m-%d %H:%M:%S"), "token_id": str(nft["identifier"]),
                     "buyer": e["buyer"], "seller": e["seller"], "amount_original": amount,
                     "currency_symbol": (pay.get("symbol") or "").upper(), "amount_usd": None,
-                    "project": "opensea", "tx_hash": e.get("transaction")})
+                    "project": "opensea" if (e.get("protocol_address") or "").lower() == SEAPORT
+                    else "other marketplace", "tx_hash": e.get("transaction")})
     return out, skipped
 
 

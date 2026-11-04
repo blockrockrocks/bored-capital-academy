@@ -1,0 +1,245 @@
+{
+ "_note": "Trimmed real OpenSea v2 responses for boredapeyachtclub, fetched 2026-11-04T21:16Z.",
+ "offers": [
+  {
+   "order_hash": "0x7639c42a4c1a649886d609c6069d31da4dabb6bcf4749dc5dfa101dc6dede646",
+   "chain": "ethereum",
+   "protocol_data": {
+    "parameters": {
+     "offerer": "0x45575fa5aecea6a28037f13df0d88e1c7757801a",
+     "offer": [
+      {
+       "itemType": 1,
+       "token": "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+       "identifierOrCriteria": "0",
+       "startAmount": "4620000000000000000",
+       "endAmount": "4620000000000000000"
+      }
+     ],
+     "consideration": [
+      {
+       "itemType": 4,
+       "token": "0xbc4ca0eda7647a8ab7c2061c2e118a18a936f13d",
+       "identifierOrCriteria": "0",
+       "startAmount": "1",
+       "endAmount": "1",
+       "recipient": "0x45575fa5aecea6a28037f13df0d88e1c7757801a"
+      },
+      {
+       "itemType": 1,
+       "token": "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+       "identifierOrCriteria": "0",
+       "startAmount": "46200000000000000",
+       "endAmount": "46200000000000000",
+       "recipient": "0x0000a26b00c1f0df003000390027140000faa719"
+      }
+     ],
+     "startTime": "1793826543",
+     "endTime": "1793827155",
+     "orderType": 2,
+     "zone": "0x000056f7000000ece9003ca63978907a00ffd100",
+     "zoneHash": "0x0000000000000000000000000000000000000000000000000000000000000000",
+     "salt": "0x1a1a864dc9d",
+     "conduitKey": "0x0000007b02230091a7ed01230072f7006a004d60a8d4e71d599b8104250f0000",
+     "totalOriginalConsiderationItems": 2,
+     "counter": "112943005510821598287619832594467734008"
+    }
+   },
+   "protocol_address": "0x0000000000000068f116a894984e2db1123eb395",
+   "asset": {
+    "identifier": null,
+    "contract": "0xbc4ca0eda7647a8ab7c2061c2e118a18a936f13d"
+   },
+   "remaining_quantity": 1,
+   "order_created_at": 1793826545,
+   "criteria": {
+    "collection": {
+     "slug": "boredapeyachtclub"
+    },
+    "contract": {
+     "address": "0xbc4ca0eda7647a8ab7c2061c2e118a18a936f13d"
+    },
+    "traits": null,
+    "numeric_traits": null,
+    "encoded_token_ids": "*"
+   },
+   "price": {
+    "currency": "WETH",
+    "decimals": 18,
+    "value": "4620000000000000000"
+   },
+   "price_per_item": {
+    "currency": "WETH",
+    "decimals": 18,
+    "value": "4620000000000000000"
+   },
+   "status": "ACTIVE"
+  },
+  {
+   "order_hash": "0xd43497da0d49223567fe475fdeed160a5b01f4b15df77f4183f5b4d44c7e5bde",
+   "chain": "ethereum",
+   "protocol_data": {
+    "parameters": {
+     "offerer": "0x18e5232011f6f1655290d705f537e1a051ce7847",
+     "offer": [
+      {
+       "itemType": 1,
+       "token": "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+       "identifierOrCriteria": "0",
+       "startAmount": "28560000000000000000",
+       "endAmount": "28560000000000000000"
+      }
+     ],
+     "consideration": [
+      {
+       "itemType": 4,
+       "token": "0xbc4ca0eda7647a8ab7c2061c2e118a18a936f13d",
+       "identifierOrCriteria": "0",
+       "startAmount": "8",
+       "endAmount": "8",
+       "recipient": "0x18e5232011f6f1655290d705f537e1a051ce7847"
+      },
+      {
+       "itemType": 1,
+       "token": "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+       "identifierOrCriteria": "0",
+       "startAmount": "285600000000000000",
+       "endAmount": "285600000000000000",
+       "recipient": "0x0000a26b00c1f0df003000390027140000faa719"
+      }
+     ],
+     "startTime": "1793768101",
+     "endTime": "1794571200",
+     "orderType": 3,
+     "zone": "0x000056f7000000ece9003ca63978907a00ffd100",
+     "zoneHash": "0x0000000000000000000000000000000000000000000000000000000000000000",
+     "salt": "0x3d958fe20000000000000000000000000000000000000000dc33fa2c42a4bd74",
+     "conduitKey": "0x0000007b02230091a7ed01230072f7006a004d60a8d4e71d599b8104250f0000",
+     "totalOriginalConsiderationItems": 2,
+     "counter": "0"
+    }
+   },
+   "protocol_address": "0x0000000000000068f116a894984e2db1123eb395",
+   "asset": {
+    "identifier": null,
+    "contract": "0xbc4ca0eda7647a8ab7c2061c2e118a18a936f13d"
+   },
+   "remaining_quantity": 8,
+   "order_created_at": 1793768104,
+   "criteria": {
+    "collection": {
+     "slug": "boredapeyachtclub"
+    },
+    "contract": {
+     "address": "0xbc4ca0eda7647a8ab7c2061c2e118a18a936f13d"
+    },
+    "traits": null,
+    "numeric_traits": null,
+    "encoded_token_ids": "*"
+   },
+   "price": {
+    "currency": "WETH",
+    "decimals": 18,
+    "value": "28560000000000000000"
+   },
+   "price_per_item": {
+    "currency": "WETH",
+    "decimals": 18,
+    "value": "3570000000000000000"
+   },
+   "status": "ACTIVE"
+  }
+ ],
+ "sales": [
+  {
+   "event_type": "sale",
+   "event_timestamp": 1791363215,
+   "transaction": "0x173caa23dcaba33f08d40032cebfc80abe844e0cf14a67980a650b6b9dbb2cab",
+   "chain": "ethereum",
+   "payment": {
+    "quantity": "5620000000000000000",
+    "token_address": "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+    "decimals": 18,
+    "symbol": "WETH"
+   },
+   "closing_date": 1791363215,
+   "seller": "0xf46a58cada29ff34cf62f72357d2b37815506feb",
+   "buyer": "0xdd930b9a03cc1b7342a9a7804dc2c63dae353776",
+   "quantity": 1,
+   "nft": {
+    "identifier": "7689",
+    "collection": "boredapeyachtclub",
+    "contract": "0xbc4ca0eda7647a8ab7c2061c2e118a18a936f13d",
+    "token_standard": "erc721"
+   }
+  },
+  {
+   "event_type": "sale",
+   "event_timestamp": 1791363215,
+   "transaction": "0x173caa23dcaba33f08d40032cebfc80abe844e0cf14a67980a650b6b9dbb2cab",
+   "chain": "ethereum",
+   "payment": {
+    "quantity": "5563800000000000000",
+    "token_address": "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+    "decimals": 18,
+    "symbol": "WETH"
+   },
+   "closing_date": 1791363215,
+   "seller": "0xf46a58cada29ff34cf62f72357d2b37815506feb",
+   "buyer": "0xf46a58cada29ff34cf62f72357d2b37815506feb",
+   "quantity": 1,
+   "nft": {
+    "identifier": "7689",
+    "collection": "boredapeyachtclub",
+    "contract": "0xbc4ca0eda7647a8ab7c2061c2e118a18a936f13d",
+    "token_standard": "erc721"
+   }
+  },
+  {
+   "event_type": "sale",
+   "event_timestamp": 1793806295,
+   "transaction": "0xfadea23af095d317ffa5edf79d96376081a2bece3410fffc2988db111c022679",
+   "chain": "ethereum",
+   "payment": {
+    "quantity": "5400000000000000000",
+    "token_address": "0x0000000000a39bb272e79075ade125fd351887ac",
+    "decimals": 18,
+    "symbol": "BETH"
+   },
+   "closing_date": 1793806295,
+   "seller": "0x0060281d9f6314c368684e9e17fdb4a42b7ca244",
+   "buyer": "0xcca4446b31a94d7708729a13bea16e73d47e1eed",
+   "quantity": 1,
+   "nft": {
+    "identifier": "5471",
+    "collection": "boredapeyachtclub",
+    "contract": "0xbc4ca0eda7647a8ab7c2061c2e118a18a936f13d",
+    "token_standard": "erc721"
+   }
+  },
+  {
+   "event_type": "sale",
+   "event_timestamp": 1793794523,
+   "transaction": "0x923e2608d4c00a3b9bc00856c3a587b08657b95ca1f91b5b1b8b9307b9a8f7e3",
+   "order_hash": "0x182c10d9e3e17f11875d57cc1ee2c8802a8f2b155078e07923dadd70cd8be76e",
+   "protocol_address": "0x0000000000000068f116a894984e2db1123eb395",
+   "chain": "ethereum",
+   "payment": {
+    "quantity": "5400000000000000000",
+    "token_address": "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+    "decimals": 18,
+    "symbol": "WETH"
+   },
+   "closing_date": 1793794523,
+   "seller": "0x2095fa070daf44b2ad0e16c0bba8a6816cfce0b7",
+   "buyer": "0x0060281d9f6314c368684e9e17fdb4a42b7ca244",
+   "quantity": 1,
+   "nft": {
+    "identifier": "5471",
+    "collection": "boredapeyachtclub",
+    "contract": "0xbc4ca0eda7647a8ab7c2061c2e118a18a936f13d",
+    "token_standard": "erc721"
+   }
+  }
+ ]
+}
